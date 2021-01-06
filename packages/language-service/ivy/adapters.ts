@@ -10,8 +10,9 @@
 
 import {ConfigurationHost} from '@angular/compiler-cli';
 import {NgCompilerAdapter} from '@angular/compiler-cli/src/ngtsc/core/api';
-import {absoluteFrom, AbsoluteFsPath, FileStats, PathSegment, PathString} from '@angular/compiler-cli/src/ngtsc/file_system';
+import {AbsoluteFsPath, FileStats, PathSegment, PathString} from '@angular/compiler-cli/src/ngtsc/file_system';
 import {isShim} from '@angular/compiler-cli/src/ngtsc/shims';
+import {getRootDirs} from '@angular/compiler-cli/src/ngtsc/util/src/typescript';
 import * as p from 'path';
 import * as ts from 'typescript/lib/tsserverlibrary';
 
@@ -27,7 +28,7 @@ export class LanguageServiceAdapter implements NgCompilerAdapter {
   private readonly templateVersion = new Map<string, string>();
 
   constructor(private readonly project: ts.server.Project) {
-    this.rootDirs = project.getCompilationSettings().rootDirs?.map(absoluteFrom) || [];
+    this.rootDirs = getRootDirs(this, project.getCompilationSettings());
   }
 
   isShim(sf: ts.SourceFile): boolean {
@@ -122,7 +123,7 @@ export class LSParseConfigHost implements ConfigurationHost {
     return p.extname(path);
   }
   resolve(...paths: string[]): AbsoluteFsPath {
-    return this.serverHost.resolvePath(this.join(paths[0], ...paths.slice(1))) as AbsoluteFsPath;
+    return p.resolve(...paths) as AbsoluteFsPath;
   }
   dirname<T extends PathString>(file: T): T {
     return p.dirname(file) as T;
